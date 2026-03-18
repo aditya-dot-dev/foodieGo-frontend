@@ -153,8 +153,8 @@ export default function Register() {
     }
   };
 
-  // Input field component for consistency
-  const InputField = ({
+  // Input field renderer for consistency (function call prevents remount/focus loss)
+  const renderInputField = ({
     id,
     label,
     icon: Icon,
@@ -226,29 +226,29 @@ export default function Register() {
           </div>
         )}
 
-        <InputField id="name" label="Full Name" icon={User} placeholder="John Doe" autoComplete="name" />
-        <InputField id="email" label="Email" icon={Mail} type="email" placeholder="you@example.com" autoComplete="email" />
-        <InputField id="phone" label="Phone Number" icon={Phone} type="tel" placeholder="1234567890" autoComplete="tel" />
-        <InputField
-          id="password"
-          label="Password"
-          icon={Lock}
-          placeholder="••••••••"
-          autoComplete="new-password"
-          showToggle
-          isVisible={showPassword}
-          onToggle={() => setShowPassword(!showPassword)}
-        />
-        <InputField
-          id="confirmPassword"
-          label="Confirm Password"
-          icon={Lock}
-          placeholder="••••••••"
-          autoComplete="new-password"
-          showToggle
-          isVisible={showConfirmPassword}
-          onToggle={() => setShowConfirmPassword(!showConfirmPassword)}
-        />
+        {renderInputField({ id: 'name', label: 'Full Name', icon: User, placeholder: 'John Doe', autoComplete: 'name' })}
+        {renderInputField({ id: 'email', label: 'Email', icon: Mail, type: 'email', placeholder: 'you@example.com', autoComplete: 'email' })}
+        {renderInputField({ id: 'phone', label: 'Phone Number', icon: Phone, type: 'tel', placeholder: '1234567890', autoComplete: 'tel' })}
+        {renderInputField({
+          id: 'password',
+          label: 'Password',
+          icon: Lock,
+          placeholder: '••••••••',
+          autoComplete: 'new-password',
+          showToggle: true,
+          isVisible: showPassword,
+          onToggle: () => setShowPassword(!showPassword),
+        })}
+        {renderInputField({
+          id: 'confirmPassword',
+          label: 'Confirm Password',
+          icon: Lock,
+          placeholder: '••••••••',
+          autoComplete: 'new-password',
+          showToggle: true,
+          isVisible: showConfirmPassword,
+          onToggle: () => setShowConfirmPassword(!showConfirmPassword),
+        })}
 
         {/* Role Selection */}
         <div className="space-y-3">
