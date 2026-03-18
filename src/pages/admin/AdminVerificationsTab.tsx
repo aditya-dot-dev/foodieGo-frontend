@@ -5,15 +5,26 @@ import { Badge } from '@/components/ui/badge';
 
 interface AdminVerificationsTabProps {
     pendingVerification: any[];
+    isLoading?: boolean;
     onReject: (id: string) => void;
     onVerify: (item: any) => void;
 }
 
 export function AdminVerificationsTab({
     pendingVerification,
+    isLoading = false,
     onReject,
     onVerify
 }: AdminVerificationsTabProps) {
+    if (isLoading) {
+        return (
+            <div className="bg-white rounded-3xl border border-zinc-200 py-16 text-center">
+                <p className="text-zinc-500 font-bold uppercase tracking-widest text-[10px]">Loading Pending Verifications</p>
+                <p className="text-zinc-400 text-xs mt-1">Please wait while we fetch the latest applicants.</p>
+            </div>
+        );
+    }
+
     if (pendingVerification.length === 0) {
         return (
             <div className="bg-white rounded-3xl border-2 border-dashed border-zinc-200 py-24 text-center">

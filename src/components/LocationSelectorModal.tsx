@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MapPin, Navigation, Search, Check, Loader2, X } from 'lucide-react';
+import { useLocation as useRouterLocation } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useLocation, Location } from '@/contexts/LocationContext';
+import { useLocation as useDeliveryLocation, Location } from '@/contexts/LocationContext';
 import { useDeliveryAddress } from '@/contexts/DeliveryAddressContext';
 import { geocodeAddress } from '@/lib/mapbox';
 
@@ -24,7 +25,8 @@ export function LocationSelectorModal() {
     closeLocationModal,
     isDetecting,
     detectLocation,
-  } = useLocation();
+  } = useDeliveryLocation();
+  const { pathname } = useRouterLocation();
 
   const { setActiveAddress } = useDeliveryAddress();
 
@@ -33,10 +35,12 @@ export function LocationSelectorModal() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredResults, setFilteredResults] = useState<Location[]>([]);
   const [geoError, setGeoError] = useState(false);
+  const suppressedRoutePrefixes = ['/login', '/register', '/admin', '/owner', '/delivery-partner'];
+  const shouldSuppressAutoModal = suppressedRoutePrefixes.some((prefix) => pathname.startsWith(prefix));
 
   // Reset state when modal opens
   useEffect(() => {
-    if (isModalOpen) {
+    if (isModalOpen && !shouldSuppressAutoModal) {
       setGeoError(false);
       setSearchQuery('');
       setFilteredResults([]);
@@ -50,7 +54,7 @@ export function LocationSelectorModal() {
         setModalState('manual');
       }
     }
-  }, [isModalOpen, location]);
+  }, [isModalOpen, location, shouldSuppressAutoModal]);
 
   // Filter search results
   useEffect(() => {
@@ -142,6 +146,10 @@ export function LocationSelectorModal() {
     setModalState('detecting');
     handleDetectLocation();
   };
+
+  if (shouldSuppressAutoModal) {
+    return null;
+  }
 
   return (
     <Dialog open={isModalOpen} onOpenChange={(open) => !open && closeLocationModal()}>

@@ -206,13 +206,19 @@ export default function Admin() {
         r.owner.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const pendingVerification = restaurants.filter((r: any) => !r.isVerified);
+    const pendingRestaurantVerifications = restaurants.filter((r: any) => !r.isVerified);
 
-    const { data: pendingUsers = [], isLoading: loadingPendingUsers } = useQuery({
+    const { data: pendingUsers = [], isLoading: loadingPendingUsers, refetch: refetchPendingUsers } = useQuery({
         queryKey: ['admin-pending-users'],
         queryFn: () => adminApi.getUsers({ status: 'pending' }),
-        enabled: activeTab === 'verifications' || activeTab === 'overview',
+        enabled: true,
     });
+
+    useEffect(() => {
+        if (activeTab === 'verifications') {
+            refetchPendingUsers();
+        }
+    }, [activeTab, refetchPendingUsers]);
 
     const verifyUserMutation = useMutation({
         mutationFn: adminApi.verifyUser,
@@ -241,10 +247,10 @@ export default function Admin() {
         },
     });
 
-    // Combine pending verifications (Users + Restaurants)
+    // Combine pending verifications (pending restaurant entities + pending user applications)
     const allPendingVerifications = [
-        ...pendingVerification.map((r: any) => ({ ...r, type: 'RESTAURANT' })),
-        ...pendingUsers.map((u: any) => ({ ...u, type: 'USER', owner: { name: u.name, email: u.email }, area: 'N/A', city: 'N/A' }))
+        ...pendingRestaurantVerifications.map((r: any) => ({ ...r, type: 'RESTAURANT', verificationKind: 'RESTAURANT_ENTITY' })),
+        ...pendingUsers.map((u: any) => ({ ...u, type: u.role, verificationKind: 'USER_APPLICATION', owner: { name: u.name, email: u.email }, area: 'N/A', city: 'N/A' }))
     ];
 
     const filteredUsers = users.filter((u: any) =>
@@ -379,16 +385,17 @@ export default function Admin() {
                     <TabsContent value="verifications">
                         <AdminVerificationsTab
                             pendingVerification={allPendingVerifications}
+                            isLoading={loadingPendingUsers || loadingRestaurants}
                             onReject={(id) => {
                                 const item = allPendingVerifications.find(i => i.id === id);
-                                if (item?.type === 'USER') {
+                                if (item?.verificationKind === 'USER_APPLICATION') {
                                     rejectUserMutation.mutate(id);
                                 } else {
                                     toggleRestaurantStatusMutation.mutate(id);
                                 }
                             }}
                             onVerify={(item) => {
-                                if (item.type === 'USER') {
+                                if (item.verificationKind === 'USER_APPLICATION') {
                                     verifyUserMutation.mutate(item.id);
                                 } else {
                                     toggleVerificationMutation.mutate(item.id);

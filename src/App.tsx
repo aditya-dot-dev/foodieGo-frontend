@@ -36,11 +36,11 @@ const App = () => (
         <LocationProvider>
           <DeliveryAddressProvider>
             <FavoritesProvider>
-              <Toaster />
-              <Sonner />
-              <LocationSelectorModal />
-              <AddressSelectorModal />
               <BrowserRouter>
+                <Toaster />
+                <Sonner />
+                <LocationSelectorModal />
+                <AddressSelectorModal />
                 <Routes>
                   {/* Home: accessible to guests and USER, but not RESTAURANT */}
                   <Route
