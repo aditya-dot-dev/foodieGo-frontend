@@ -200,8 +200,8 @@ export default function Home() {
 
   // Initialize filtered restaurants with location-filtered data
   useEffect(() => {
-    setFilteredRestaurants(locationFilteredRestaurants);
-  }, [locationFilteredRestaurants]);
+    setFilteredRestaurants(hasNoLocationMatches ? displayRestaurants : locationFilteredRestaurants);
+  }, [locationFilteredRestaurants, hasNoLocationMatches, displayRestaurants]);
 
   const handleFilteredChange = useCallback((filtered: Restaurant[]) => {
     setFilteredRestaurants(filtered);
@@ -418,46 +418,45 @@ export default function Home() {
           </div>
         )}
 
-        {/* Filter Bar - only show if there are location-matched restaurants */}
-        {!hasNoLocationMatches && (
-          <div className="mb-6">
-            <FilterBar
-              restaurants={locationFilteredRestaurants}
-              onFilteredChange={handleFilteredChange}
-              resultCount={filteredRestaurants.length}
-            />
+        {/* Out-of-area alert banner */}
+        {hasNoLocationMatches && (
+          <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl border border-orange-200 bg-orange-50/50 p-4 dark:border-orange-900/50 dark:bg-orange-900/10 animate-in fade-in slide-in-from-bottom-4">
+            <div className="flex items-center gap-4 text-center sm:text-left">
+              <div className="hidden sm:flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-800/50">
+                <MapPinOff className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-orange-900 dark:text-orange-100">
+                  No restaurants in {effectiveLocation?.area && effectiveLocation?.city ? `${effectiveLocation.area}, ${effectiveLocation.city}` : effectiveLocation?.city || effectiveLocation?.area || 'this area'}
+                </h3>
+                <p className="text-sm text-orange-700 dark:text-orange-300">
+                  Showing other restaurants. You can still explore and order for a different location!
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={handleAddressClick}
+              className="shrink-0 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg text-white"
+            >
+              <MapPin className="mr-2 h-4 w-4" />
+              Change Location
+            </Button>
           </div>
         )}
+
+        {/* Filter Bar */}
+        <div className="mb-6">
+          <FilterBar
+            restaurants={hasNoLocationMatches ? displayRestaurants : locationFilteredRestaurants}
+            onFilteredChange={handleFilteredChange}
+            resultCount={filteredRestaurants.length}
+          />
+        </div>
 
         {/* Restaurant Grid */}
         <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
           {isLoading ? (
             Array.from({ length: 6 }).map((_, i) => <RestaurantCardSkeleton key={i} />)
-          ) : hasNoLocationMatches ? (
-            <div className="col-span-full">
-              <div className="bg-card rounded-2xl border border-border/50 shadow-lg p-12 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-500/20 dark:to-red-500/20 flex items-center justify-center mx-auto mb-6">
-                  <MapPinOff className="h-10 w-10 text-orange-500" />
-                </div>
-                <h3 className="text-2xl font-bold text-foreground mb-2">
-                  No restaurants available
-                </h3>
-                <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                  We couldn't find any restaurants delivering to{' '}
-                  {effectiveLocation?.area && effectiveLocation?.city
-                    ? `${effectiveLocation.area}, ${effectiveLocation.city}`
-                    : effectiveLocation?.city || effectiveLocation?.area || 'this area'}.
-                  Try selecting a different location.
-                </p>
-                <Button
-                  onClick={handleAddressClick}
-                  className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 shadow-lg"
-                >
-                  <MapPin className="h-4 w-4 mr-2" />
-                  Change Location
-                </Button>
-              </div>
-            </div>
           ) : filteredRestaurants.length === 0 ? (
             <div className="col-span-full">
               <div className="bg-card rounded-2xl border border-border/50 shadow-lg p-12 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -468,7 +467,7 @@ export default function Home() {
                 <p className="text-muted-foreground mb-6">No restaurants match your current filters.</p>
                 <Button
                   variant="outline"
-                  onClick={() => setFilteredRestaurants(locationFilteredRestaurants)}
+                  onClick={() => setFilteredRestaurants(hasNoLocationMatches ? displayRestaurants : locationFilteredRestaurants)}
                   className="hover:border-orange-500/50"
                 >
                   Clear Filters
